@@ -40,9 +40,6 @@ public class ClientHandler {
                                     .getAuthService()
                                     .getNicknameByLoginAndPassword(token[1], token[2]);
                             login = token[1];
-
-                            System.out.println(newNick);
-
                             if (newNick != null) {
                                 if (!server.isLoginAuthorized(login)) {
                                     sendMsg("/authok " + newNick);
