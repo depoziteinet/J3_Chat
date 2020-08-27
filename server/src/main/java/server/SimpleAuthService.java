@@ -1,37 +1,33 @@
 package server;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.*;
 
 public class SimpleAuthService implements AuthService {
-    private class UserData {
-        String login;
-        String password;
-        String nickname;
+    private static Connection connection;
+    private static Statement stmt;
 
-        public UserData(String login, String password, String nickname) {
-            this.login = login;
-            this.password = password;
-            this.nickname = nickname;
+    SimpleAuthService(){
+        try {
+            connect();
+            clearTable();
+
+            for (int i = 0; i < 10; i++) {
+                stmt.executeUpdate("INSERT INTO chatUsers (login, password, nickName) VALUES ('login"
+                        + i + "', 'pass" + i + "', 'nick" + i + "')");
+            }
+            } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
-    private List<UserData> users;
-
-    public SimpleAuthService() {
-        users = new ArrayList<>();
-
-        for (int i = 1; i <= 10; i++) {
-            users.add(new UserData("login" + i, "pass" + i, "nick" + i));
-        }
-    }
 
     @Override
-    public String getNicknameByLoginAndPassword(String login, String password) {
-        for (UserData user : users) {
-            if (user.login.equals(login) && user.password.equals(password)) {
-                return user.nickname;
-            }
+    public String getNicknameByLoginAndPassword(String login, String password) throws SQLException {
+        ResultSet rs = stmt.executeQuery("SELECT nickName, login, password FROM chatUsers");
+        while (rs.next()){
+            if(rs.getString("login").equals(login) && rs.getString("password").equals(password))
+                return rs.getString("nickName");
         }
 
         return null;
@@ -39,12 +35,33 @@ public class SimpleAuthService implements AuthService {
 
     @Override
     public boolean registration(String login, String password, String nickname) {
-        for (UserData user : users) {
-            if(user.login.equals(login) || user.nickname.equals(nickname)){
-                return false;
-            }
+        return false;
+    }
+
+    public static void connect() throws ClassNotFoundException, SQLException {
+        Class.forName("org.sqlite.JDBC");
+        connection = DriverManager.getConnection("jdbc:sqlite:main.db");
+        stmt = connection.createStatement();
+    }
+
+    private static void clearTable() throws SQLException{
+        stmt.executeUpdate("DELETE FROM chatUsers");
+    }
+
+    public static void changeNickName(String login, String nickAfter) throws SQLException {
+        stmt.executeUpdate("UPDATE chatUsers SET nickName='" + nickAfter + "' WHERE login='" + login + "';");
+    }
+
+    private static void disconnect() {
+        try {
+            stmt.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        users.add(new UserData(login, password, nickname));
-        return true;
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

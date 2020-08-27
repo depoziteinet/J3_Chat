@@ -183,7 +183,14 @@ public class Controller implements Initializable {
 
     public void sendMsg(ActionEvent actionEvent) {
         try {
-            out.writeUTF(textField.getText());
+            String str = textField.getText();
+            out.writeUTF(str);
+            if (str.startsWith("/c ")) {
+                String[] token;
+                token = str.split("\\s", 2);
+                nick = token[1];
+                setTitle(nick);
+            }
             textField.requestFocus();
             textField.clear();
         } catch (IOException e) {
