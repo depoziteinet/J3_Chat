@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.sql.SQLException;
 
 public class ClientHandler {
     Server server;
@@ -89,6 +90,15 @@ public class ClientHandler {
 
                                 server.privateMsg(this, token[1], token[2]);
                             }
+                            if (str.startsWith("/c ")){
+                                String[] token = str.split("\\s", 2);
+                                if (token.length < 2) {
+                                    continue;
+                                }
+                                SimpleAuthService.changeNickName(this.login, token[1]);
+                                this.nick = token[1];
+                                server.broadcastClientList();
+                            }
 
                         } else {
                             server.broadcastMsg(this, str);
@@ -98,6 +108,8 @@ public class ClientHandler {
                     sendMsg("/end");
                 }catch (IOException e) {
                     e.printStackTrace();
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
                 } finally {
                     System.out.println("Клиент отключился");
                     server.unsubscribe(this);
