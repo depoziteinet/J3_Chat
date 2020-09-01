@@ -19,11 +19,10 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
@@ -53,6 +52,10 @@ public class Controller implements Initializable {
 
     private boolean authenticated;
     private String nick;
+    private String login;
+    private FileOutputStream fileHistoryOutput;
+    private FileInputStream fileHistoryInput;
+
 
     private Stage stage;
     private Stage regStage;
@@ -113,6 +116,10 @@ public class Controller implements Initializable {
                         if (str.startsWith("/authok ")) {
                             nick = str.split("\\s")[1];
                             setAuthenticated(true);
+
+                            openFileHistory();
+                            print100StringHistory();
+
                             break;
                         }
 
@@ -154,6 +161,7 @@ public class Controller implements Initializable {
 
                         } else {
                             textArea.appendText(str + "\n");
+                            fileHistoryOutput.write((str + "\n").getBytes());
                         }
                     }
                 }catch (RuntimeException e)   {
@@ -180,6 +188,34 @@ public class Controller implements Initializable {
         }
     }
 
+    private void openFileHistory() throws FileNotFoundException {
+        fileHistoryOutput = new FileOutputStream("LogHistory/history_" + login + ".txt", true);
+        fileHistoryInput = new FileInputStream("LogHistory/history_" + login + ".txt");
+    }
+
+    private void print100StringHistory() throws IOException {
+
+        byte[] fullHistory = new byte[fileHistoryInput.available()];
+        StringBuilder history100String = new StringBuilder();
+        int count100String = 0;
+        int numString = 100;
+        fileHistoryInput.read(fullHistory, 0 , fullHistory.length);
+        String fullHistoryStr = new String(fullHistory);
+
+        for (int i = fullHistoryStr.length() - 1; i >= 0 ; i--) {
+            char hisChar = fullHistoryStr.charAt(i);
+
+            if(hisChar == '\n')
+                count100String++;
+            if(count100String > numString)
+                break;
+
+            history100String.append(hisChar);
+        }
+
+        textArea.appendText(history100String.reverse().toString());
+    }
+
 
     public void sendMsg(ActionEvent actionEvent) {
         try {
@@ -204,7 +240,8 @@ public class Controller implements Initializable {
         }
 
         try {
-            out.writeUTF(String.format("/auth %s %s", loginField.getText().trim(), passwordField.getText().trim()));
+            login = loginField.getText().trim();
+            out.writeUTF(String.format("/auth %s %s", login , passwordField.getText().trim()));
             passwordField.clear();
         } catch (IOException e) {
             e.printStackTrace();
