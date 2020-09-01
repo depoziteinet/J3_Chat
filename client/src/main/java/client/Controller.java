@@ -196,23 +196,20 @@ public class Controller implements Initializable {
 
         byte[] fullHistory = new byte[fileHistoryInput.available()];
         StringBuilder history100String = new StringBuilder();
-        int count100String = 0;
         int numString = 100;
+
         fileHistoryInput.read(fullHistory, 0 , fullHistory.length);
+
         String fullHistoryStr = new String(fullHistory);
 
-        for (int i = fullHistoryStr.length() - 1; i >= 0 ; i--) {
-            char hisChar = fullHistoryStr.charAt(i);
+        String[] token;
+        token = fullHistoryStr.split("\\n");
 
-            if(hisChar == '\n')
-                count100String++;
-            if(count100String > numString)
-                break;
-
-            history100String.append(hisChar);
+        for (int i = ((token.length - numString) >= 0 ? token.length - numString - 1 : 0) ; i < token.length ; i++) {
+            history100String.append(token[i] + "\n");
         }
 
-        textArea.appendText(history100String.reverse().toString());
+        textArea.appendText(history100String.toString());
     }
 
 
