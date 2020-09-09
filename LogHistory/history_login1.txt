@@ -1,0 +1,13 @@
+nick1 : 123456
+nick1 : 654321
+nick1 : aqqqqq
+nick1 : wwwwwww
+nick1 : 123456
+nick1 : 123456
+nick1 : 654321
+nick1 : 12456
+nick1 : 1111111
+nick5 : wewer
+nick1 : asdasd
+nick1 : 123456
+nick1 : wqww
