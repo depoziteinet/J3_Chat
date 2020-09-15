@@ -1,5 +1,6 @@
 package server;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -7,11 +8,16 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.*;
 
 public class Server {
     private List<ClientHandler> clients;
     private AuthService authService;
     private ExecutorService srv = Executors.newCachedThreadPool();
+    private static final Logger logger = Logger.getLogger(Server.class.getName());
+
+
+
     public AuthService getAuthService() {
         return authService;
     }
@@ -20,7 +26,7 @@ public class Server {
         return srv;
     }
 
-    public Server() {
+    public Server() throws IOException {
         clients = new Vector<>();
         authService = new SimpleAuthService();
 
@@ -29,19 +35,23 @@ public class Server {
 
         final int PORT = 8189;
 
+        LogManager manager = LogManager.getLogManager();
+        manager.readConfiguration(new FileInputStream("logging.properties"));
+
         try {
             server = new ServerSocket(PORT);
-            System.out.println("Сервер запущен!");
+            logger.log(Level.SEVERE, "Сервер запущен!");
 
             while (true) {
                 socket = server.accept();
-                System.out.println("Клиент подключился");
-                System.out.println("socket.getRemoteSocketAddress(): " + socket.getRemoteSocketAddress());
-                System.out.println("socket.getLocalSocketAddress() " + socket.getLocalSocketAddress());
+                logger.log(Level.SEVERE, "Клиент подключился",true  );
+                logger.log(Level.SEVERE, "socket.getRemoteSocketAddress(): " + socket.getRemoteSocketAddress());
+                logger.log(Level.SEVERE, "socket.getLocalSocketAddress() " + socket.getLocalSocketAddress());
                 new ClientHandler(this, socket);
             }
         } catch (IOException e) {
             e.printStackTrace();
+            logger.log(Level.SEVERE, "Ошибка", e);
         } finally {
             try {
                 server.close();
@@ -56,6 +66,7 @@ public class Server {
 
         for (ClientHandler client : clients) {
             client.sendMsg(message);
+            logger.log(Level.SEVERE, client.getNick() + " >> " + message);
         }
     }
 
@@ -66,6 +77,7 @@ public class Server {
             if(c.getNick().equals(receiver)){
                 c.sendMsg(message);
                 sender.sendMsg(message);
+                logger.log(Level.SEVERE, message);
                 return;
             }
         }
