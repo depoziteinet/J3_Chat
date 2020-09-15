@@ -1,11 +1,12 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class ClientHandler {
     Server server;
@@ -13,10 +14,15 @@ public class ClientHandler {
     DataInputStream in;
     DataOutputStream out;
 
+    private static final Logger logger = Logger.getLogger(Server.class.getName());
+
     private String nick;
     private String login;
 
-    public ClientHandler(Server server, Socket socket) {
+    public ClientHandler(Server server, Socket socket) throws IOException {
+        LogManager manager = LogManager.getLogManager();
+        manager.readConfiguration(new FileInputStream("logging.properties"));
+
         try {
             this.server = server;
             this.socket = socket;
@@ -45,14 +51,17 @@ public class ClientHandler {
                                     sendMsg("/authok " + newNick);
                                     nick = newNick;
                                     server.subscribe(this);
-                                    System.out.printf("Клиент %s подключился \n", nick);
+                                    logger.log(Level.SEVERE, "Клиент подключился: " + nick);
                                     socket.setSoTimeout(0);
                                     break;
                                 } else {
                                     sendMsg("С этим логином уже авторизовались");
+                                    logger.log(Level.SEVERE, "С этим ником уже авторизовались: " + nick);
                                 }
                             } else {
                                 sendMsg("Неверный логин / пароль");
+                                logger.log(Level.SEVERE, "Неверный логин / пароль");
+
                             }
                         }
 
